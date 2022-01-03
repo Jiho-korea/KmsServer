@@ -1,5 +1,6 @@
 package com.impconsulting.KmsServer.util;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,7 +27,8 @@ public class Pem {
 	}
 
 	public void write(String filename) throws FileNotFoundException, IOException {
-		PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(filename)));
+		File file = new File("src/main/resources/key/" + filename);
+		PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(file)));
 		try {
 			pemWriter.writeObject(this.pemObject);
 		} finally {
@@ -38,7 +40,6 @@ public class Pem {
 			throws FileNotFoundException, IOException {
 		Pem pemFile = new Pem(key, description);
 		pemFile.write(filename);
-		
-		System.out.println(String.format("%s를 %s 파일로 내보냈습니다.", description, filename));
+		//System.out.println(String.format("%s를 %s 파일로 내보냈습니다.", description, filename));
 	}
 }
