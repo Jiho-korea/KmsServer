@@ -5,11 +5,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.asn1.pkcs.RSAPublicKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -46,6 +48,9 @@ public class TestController {
 
 	@GetMapping("/getPublicKey")
 	public @ResponseBody ResponseEntity<Resource> getPublicKey(@RequestParam("clientId") String pClientId, Model model) throws Exception {
+		// 암호화된 secret 삭제
+		vaultTemplate.delete("test/"+ pClientId + "/encrypted");
+		
 		// 시크릿엔진 kv 조회
 		VaultResponseSupport<Credentials> result = vaultTemplate.read("test/"+ pClientId, Credentials.class);
 		if(result == null) {
@@ -57,21 +62,24 @@ public class TestController {
 		// 키 생성
 		KeyPair keyPair = keyGenerator.generate();
 		//LOG.info("plain clientId: " + clientId);
-		//LOG.info("plain clientSecret: " + clientSecret);
+		LOG.info("plain clientSecret: " + clientSecret);
 		
 		String encryptedClientSecret = keyGenerator.encryptRsa(keyPair.getPrivate(), clientSecret);
 		
 		//LOG.info("private Key: " + keyPair.getPrivate() + "\n");
 		LOG.info("encrypted ClientSecret: " + encryptedClientSecret);
 		
+		// private Key => pem 파일 저장 (테스트용)
+		//pem.writePemFile(keyPair.getPublic(), "RSA PRIVATE KEY", "private.pem");
+		
 		// 암호화된 clientSecret을 하위(/encrypted) 시크릿 엔진에 저장
 		EncryptedCredentials encryptedCredentials = new EncryptedCredentials(clientId, encryptedClientSecret);
-		vaultTemplate.write("test/test/encrypted", encryptedCredentials); // 우선 고정 secret engine에 비밀번호 저장
+		vaultTemplate.write("test/"+ pClientId + "/encrypted", encryptedCredentials); // 우선 고정 secret engine에 비밀번호 저장
 		
 		// public 키를 이용한 복호화 (테스트용)
-		//String decryptedClientSecret = keyGenerator.decryptRsa(keyPair.getPublic(), encryptedClientSecret); 
+		String decryptedClientSecret = keyGenerator.decryptRsa(keyPair.getPublic(), encryptedClientSecret);
 		//LOG.info("public Key: " + keyPair.getPublic() + "\n");
-		//LOG.info("decrypted ClientSecret: " + decryptedClientSecret);
+		LOG.info("decrypted ClientSecret: " + decryptedClientSecret);
 		
 		// public Key => pem 파일 저장
 		pem.writePemFile(keyPair.getPublic(), "RSA PUBLIC KEY", "public.pem");
@@ -110,13 +118,18 @@ public class TestController {
 		String clientId = result.getData().getClientId();
 		String encryptedClientSecret = result.getData().getEncryptedClientSecret();
 		
-		//LOG.info("private Key: " + keyPair.getPrivate() + "\n");
 		LOG.info("encrypted ClientSecret: " + encryptedClientSecret);
-				
+		
+		// public.pem 파일을 통한 복호화 테스트 코드
+		// public Key 불러오기
+		PublicKey key = pem.readPublicKey("public.pem");
 		// public 키를 이용한 복호화 (테스트용)
-		//String decryptedClientSecret = keyGenerator.decryptRsa(keyPair.getPublic(), encryptedClientSecret); 
+		String decryptedClientSecret = keyGenerator.decryptRsa(key, encryptedClientSecret);
 		//LOG.info("public Key: " + keyPair.getPublic() + "\n");
-		//LOG.info("decrypted ClientSecret: " + decryptedClientSecret);
+		LOG.info("decrypted ClientSecret: " + decryptedClientSecret);
+				
+		// 암호화된 secret 삭제
+		vaultTemplate.delete("test/"+ pClientId + "/encrypted");
 		
 		// 테스트용 clientId, clientSecret 리턴
 //		Map<String, Object> data = new HashMap<String, Object>();

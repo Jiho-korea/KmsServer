@@ -9,6 +9,7 @@
 */
 package com.impconsulting.KmsServer.service.impl;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -54,7 +55,7 @@ public class KeyGeneratorImpl implements KeyGenerator {
 
 		Cipher cipher = Cipher.getInstance("RSA");
 		cipher.init(Cipher.ENCRYPT_MODE, privateKey);
-		byte[] encryptedBytes = cipher.doFinal(plainValue.getBytes());
+		byte[] encryptedBytes = cipher.doFinal(plainValue.getBytes(StandardCharsets.UTF_8));
 		String encryptedValue = Base64.getEncoder().encodeToString(encryptedBytes);
 
 		return encryptedValue;
@@ -65,10 +66,10 @@ public class KeyGeneratorImpl implements KeyGenerator {
 	public String decryptRsa(PublicKey publicKey, String encryptedValue) throws Exception {
 
 		Cipher cipher = Cipher.getInstance("RSA");
-		byte[] encryptedBytes = Base64.getDecoder().decode(encryptedValue.getBytes());
 		cipher.init(Cipher.DECRYPT_MODE, publicKey);
+		byte[] encryptedBytes = Base64.getDecoder().decode(encryptedValue);
 		byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
-		String decryptedValue = new String(decryptedBytes, "utf-8");
+		String decryptedValue = new String(decryptedBytes, StandardCharsets.UTF_8);
 
 		return decryptedValue;
 	}
