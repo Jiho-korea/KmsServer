@@ -20,6 +20,7 @@ import org.springframework.ui.Model;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultResponseSupport;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +31,7 @@ import com.impconsulting.KmsServer.vo.Credentials;
 import com.impconsulting.KmsServer.vo.EncryptedCredentials;
 
 @RestController
+@RequestMapping("/kms")
 public class KmsController {
 
 	private static final Log LOG = LogFactory.getLog(KmsController.class);
