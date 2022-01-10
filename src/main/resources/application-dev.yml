@@ -1,0 +1,23 @@
+server:
+  port: 8066
+  tomcat:
+    uri-encoding: UTF-8 
+  servlet:
+    encoding:
+      charset: UTF-8
+
+spring:
+  messages:
+    encoding: UTF-8
+  config:
+    activate:
+      on-profile: default
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      host: localhost
+      port: 8200
+      token: s.0WX6YHFHU6Hip3CpI0eUhnCx
+      scheme: http
+      authentication: TOKEN
+  
