@@ -11,10 +11,6 @@ import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 
-import org.bouncycastle.asn1.pkcs.RSAPublicKey;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
@@ -28,15 +24,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Component
-public class Pem {
+public class Pem {	
 	private PemObject pemObject;
 
 	public Pem(Key key, String description) {
 		this.pemObject = new PemObject(description, key.getEncoded());
 	}
 
-	public void write(String filename) throws FileNotFoundException, IOException {
-		File file = new File("src/main/resources/key/" + filename);
+	public void write(String keyPath) throws FileNotFoundException, IOException {
+		File file = new File(keyPath);
 		PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(file)));
 		try {
 			pemWriter.writeObject(this.pemObject);
@@ -52,10 +48,10 @@ public class Pem {
 		//System.out.println(String.format("%s를 %s 파일로 내보냈습니다.", description, filename));
 	}
 	
-	public PublicKey readPublicKey(String filename) throws Exception {
+	public PublicKey readPublicKey(String keyPath) throws Exception {
 	    KeyFactory factory = KeyFactory.getInstance("RSA");
 
-	    try (FileReader keyReader = new FileReader(new File("src/main/resources/key/" + filename));
+	    try (FileReader keyReader = new FileReader(new File(keyPath));
 	      PemReader pemReader = new PemReader(keyReader)) {
 
 	        PemObject pemObject = pemReader.readPemObject();

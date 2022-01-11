@@ -9,9 +9,6 @@ server:
 spring:
   messages:
     encoding: UTF-8
-  config:
-    activate:
-      on-profile: default
   cloud:
     vault:
       uri: http://localhost:8200
@@ -21,3 +18,6 @@ spring:
       scheme: http
       authentication: TOKEN
   
+path:
+  key: /home/ec2-user/kms/key/public.pem
+  secret: /home/ec2-user/kms/secret/secret.txt
