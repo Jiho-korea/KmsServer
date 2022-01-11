@@ -1,0 +1,23 @@
+server:
+  port: 8066
+  tomcat:
+    uri-encoding: UTF-8 
+  servlet:
+    encoding:
+      charset: UTF-8
+
+spring:
+  messages:
+    encoding: UTF-8
+  cloud:
+    vault:
+      uri: http://13.209.150.54:8200
+      host: 13.209.150.54
+      port: 8200
+      token: s.56TYshmfNfk5DWHFpLfbZyx2
+      scheme: http
+      authentication: TOKEN
+  
+path:
+  key: src/main/resources/key/public.pem
+  secret: src/main/resources/secret/secret.txt

@@ -12,6 +12,7 @@ import java.security.PublicKey;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -44,6 +45,12 @@ public class KmsController {
 	@Autowired
 	Pem pem;
 
+	@Value("${path.key}")
+	String keyPath; // public key 저장 위치
+	
+	@Value("${path.secret}")
+	String secretPath; // secret 저장 위치
+			
 	@Autowired
 	private VaultTemplate vaultTemplate;
 
@@ -64,12 +71,12 @@ public class KmsController {
 		// 키 생성
 		KeyPair keyPair = keyGenerator.generate();
 		// LOG.info("plain clientId: " + clientId);
-		LOG.info("plain clientSecret: " + clientSecret);
+		//LOG.info("plain clientSecret: " + clientSecret);
 
 		String encryptedClientSecret = keyGenerator.encryptRsa(keyPair.getPrivate(), clientSecret);
 
 		// LOG.info("private Key: " + keyPair.getPrivate() + "\n");
-		LOG.info("encrypted ClientSecret: " + encryptedClientSecret);
+		//LOG.info("encrypted ClientSecret: " + encryptedClientSecret);
 
 		// private Key => pem 파일 저장 (테스트용)
 		// pem.writePemFile(keyPair.getPublic(), "RSA PRIVATE KEY", "private.pem");
@@ -81,25 +88,22 @@ public class KmsController {
 		// public 키를 이용한 복호화 (테스트용)
 		String decryptedClientSecret = keyGenerator.decryptRsa(keyPair.getPublic(), encryptedClientSecret);
 		// LOG.info("public Key: " + keyPair.getPublic() + "\n");
-		LOG.info("decrypted ClientSecret: " + decryptedClientSecret);
+		//LOG.info("decrypted ClientSecret: " + decryptedClientSecret);
 
 		// public Key => pem 파일 저장
-		pem.writePemFile(keyPair.getPublic(), "RSA PUBLIC KEY", "public.pem");
+		pem.writePemFile(keyPair.getPublic(), "RSA PUBLIC KEY", keyPath);
 
 		// 테스트용 clientId, clientSecret 리턴
 //		Map<String, Object> data = new HashMap<String, Object>();
 //		data.put("clientId", clientId);
 //		data.put("clientSecret", clientSecret);
 
-		// public key 저장 위치
-		String path = "src/main/resources/key/public.pem";
-
 		// pem 파일 다운로드
 		try {
-			Path filePath = Paths.get(path);
+			Path filePath = Paths.get(keyPath);
 			Resource resource = new InputStreamResource(Files.newInputStream(filePath)); // 파일 resource 얻기
 
-			File file = new File(path);
+			File file = new File(keyPath);
 
 			HttpHeaders headers = new HttpHeaders();
 
@@ -124,17 +128,17 @@ public class KmsController {
 		String clientId = result.getData().getClientId();
 		String encryptedClientSecret = result.getData().getEncryptedClientSecret();
 
-		LOG.info("encrypted ClientSecret: " + encryptedClientSecret);
-		OutputStream output = new FileOutputStream("src/main/resources/secret/secret.txt");
+		//LOG.info("encrypted ClientSecret: " + encryptedClientSecret);
+		OutputStream output = new FileOutputStream(secretPath);
 		output.write(encryptedClientSecret.getBytes());
 
 		// public.pem 파일을 통한 복호화 테스트 코드
 		// public Key 불러오기
-		PublicKey key = pem.readPublicKey("public.pem");
+		PublicKey key = pem.readPublicKey(keyPath);
 		// public 키를 이용한 복호화 (테스트용)
 		String decryptedClientSecret = keyGenerator.decryptRsa(key, encryptedClientSecret);
 		// LOG.info("public Key: " + keyPair.getPublic() + "\n");
-		LOG.info("decrypted ClientSecret: " + decryptedClientSecret);
+		//LOG.info("decrypted ClientSecret: " + decryptedClientSecret);
 
 		// 암호화된 secret 삭제
 		vaultTemplate.delete("core/" + pClientId + "/encrypted");
@@ -144,15 +148,12 @@ public class KmsController {
 //		data.put("clientId", clientId);
 //		data.put("clientSecret", clientSecret);
 
-		// public key 저장 위치
-		String path = "src/main/resources/secret/secret.txt";
-
 		// pem 파일 다운로드
 		try {
-			Path filePath = Paths.get(path);
+			Path filePath = Paths.get(secretPath);
 			Resource resource = new InputStreamResource(Files.newInputStream(filePath)); // 파일 resource 얻기
 
-			File file = new File(path);
+			File file = new File(secretPath);
 
 			HttpHeaders headers = new HttpHeaders();
 
