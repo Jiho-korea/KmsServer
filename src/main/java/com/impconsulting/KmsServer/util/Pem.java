@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -59,5 +60,19 @@ public class Pem {
 	        X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(content);
 	        return factory.generatePublic(pubKeySpec);
 	    }
+	}
+	
+	public PublicKey readPublicKey(byte[] keyByte) throws Exception {
+		KeyFactory factory = KeyFactory.getInstance("RSA");
+		
+		try (StringReader keyReader = new StringReader(new String(keyByte));
+			      PemReader pemReader = new PemReader(keyReader)) {
+
+			        PemObject pemObject = pemReader.readPemObject();
+			        byte[] content = pemObject.getContent();
+			        X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(content);
+			        return factory.generatePublic(pubKeySpec);
+			    }
+		
 	}
 }
